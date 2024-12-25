@@ -33,10 +33,14 @@ parser.add_argument('--model', default='vgg16', type=str, help='Model name',
 parser.add_argument('--checkpoint', default='./saved_models', type=str, help='Directory for saving models')
 parser.add_argument('--lr', default=0.1, type=float, help='Learning rate')
 parser.add_argument('--wd', default=5e-4, type=float, help='Weight decay')
+parser.add_argument('--model_name', default='model_0', type=str)
 
 args = parser.parse_args()
+if os.path.exists(args.checkpoint) is False:
+    print("Creating directory:", args.checkpoint)
+    os.makedirs(args.checkpoint)
 args.mid = f'{args.dataset}_{args.model}'
-savename = os.path.join(args.checkpoint, args.mid)+"_new"#+"no_bn"#+"no_bias"+"no_affine"#+"_no_affine"#+"_no_affine"+"_bn"
+savename = os.path.join(args.checkpoint, args.mid)+args.model_name#+"no_bn"#+"no_bias"+"no_affine"#+"_no_affine"#+"_no_affine"+"_bn"
 #print('%s_threshold_removed%d.npy'%(savename,2))
 # Check Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -55,6 +59,6 @@ print(model)
 criterion = nn.CrossEntropyLoss()
 
 model.to(device)
-train_loader, test_loader = datapool(args.dataset, batch_size,2,shuffle=True)
+train_loader, test_loader = datapool(args.dataset, batch_size, num_workers=0, shuffle=True)
 train_ann(train_loader, test_loader, model, 300, device, criterion, args.lr, args.wd, savename)      
 

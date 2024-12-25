@@ -6,7 +6,6 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import torch.utils.data as data
 from Preprocess.augment import Cutout, CIFAR10Policy
-from Preprocess.cifar10_dvs import CIFAR10DVS
 from PIL import Image, ImageEnhance, ImageOps
 import random
 import numpy as np
@@ -58,7 +57,7 @@ class SubPolicy(object):
             "translateY": np.linspace(0, 150 / 331, 10),
             "rotate": np.linspace(0, 30, 10),
             "color": np.linspace(0.0, 0.9, 10),
-            "posterize": np.round(np.linspace(8, 4, 10), 0).astype(np.int),
+            "posterize": np.round(np.linspace(8, 4, 10), 0).astype(int),
             "solarize": np.linspace(256, 0, 10),
             "contrast": np.linspace(0.0, 0.9, 10),
             "sharpness": np.linspace(0.0, 0.9, 10),
@@ -323,39 +322,39 @@ def GetCifar_naive(data_path, dataset, batch_size, num_workers):
     return train_loader, test_loader
 
 
-def GetCIFAR10DVS(timesteps, batch_size, num_workers,):
-    """ definition of 'CIFAR10DVS'
-    """
-    transform_train = transforms.Compose([
-        transforms.Resize([48, 48]),
-        transforms.RandomCrop(48, padding=4),
-    ])
-    trainset = CIFAR10DVS(
-        DIR['CIFAR10DVS'], train=True, split_ratio=0.9, use_frame=True, 
-        frames_num=timesteps, split_by='number', normalization=None, 
-        transform=transform_train)
-    trainloader = data.DataLoader(
-        dataset=trainset, 
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=False)
+# def GetCIFAR10DVS(timesteps, batch_size, num_workers,):
+#     """ definition of 'CIFAR10DVS'
+#     """
+#     transform_train = transforms.Compose([
+#         transforms.Resize([48, 48]),
+#         transforms.RandomCrop(48, padding=4),
+#     ])
+#     trainset = CIFAR10DVS(
+#         DIR['CIFAR10DVS'], train=True, split_ratio=0.9, use_frame=True, 
+#         frames_num=timesteps, split_by='number', normalization=None, 
+#         transform=transform_train)
+#     trainloader = data.DataLoader(
+#         dataset=trainset, 
+#         batch_size=batch_size,
+#         shuffle=True,
+#         num_workers=num_workers,
+#         pin_memory=True,
+#         drop_last=False)
 
-    transform_test = transforms.Compose([transforms.Resize([48, 48])])
+#     transform_test = transforms.Compose([transforms.Resize([48, 48])])
 
-    testset = CIFAR10DVS(
-        DIR['CIFAR10DVS'], train=False, split_ratio=0.9, use_frame=True,
-        frames_num=timesteps, split_by='number', normalization=None, 
-        transform=transform_test)
-    testloader = data.DataLoader(
-        dataset=testset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=False)
-    return trainloader, testloader 
+#     testset = CIFAR10DVS(
+#         DIR['CIFAR10DVS'], train=False, split_ratio=0.9, use_frame=True,
+#         frames_num=timesteps, split_by='number', normalization=None, 
+#         transform=transform_test)
+#     testloader = data.DataLoader(
+#         dataset=testset,
+#         batch_size=batch_size,
+#         shuffle=False,
+#         num_workers=num_workers,
+#         pin_memory=True,
+#         drop_last=False)
+#     return trainloader, testloader 
 
 
 

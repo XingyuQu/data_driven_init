@@ -13,7 +13,7 @@ python3 train_ann.py --dataset cifar10/cifar100 --model vgg16/resnet18/resnet20/
 ---------------------------------------------------------------------------------------------------------
 To compute the threshold and initial potential values, 
 
-python3 feature_extraction.py ----iter 1 --samples 100 --model vgg16/resnet18/resnet20/cifarnet --dataset  cifar10/cifar100 
+python3 feature_extraction.py --iter 1 --samples 100 --model vgg16/resnet18/resnet20/cifarnet --dataset  cifar10/cifar100 
 --checkpoint dir-name
 
 # iter - Number of iterations required to find the membrane potential and initial potential values.

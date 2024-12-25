@@ -5,6 +5,8 @@ Loads ANN model and copies the weights to an SNN model.
 '''
 
 
+# python3 feature_extraction.py --iter 1 --samples 100 --model vgg16 --dataset  cifar10 --checkpoint ./saved_models/cifar10_vgg16_0.pth
+
 import torch
 import torch.nn as nn
 from spiking_layer_ours import *
@@ -29,13 +31,14 @@ parser.add_argument('--model', default='vgg16', type=str, help='Model name',
                     choices=['cifarnet','small','vgg16', 'resnet18', 'resnet20',
                              'vgg11', 'vgg13', 'vgg16', 'vgg19', 'vgg16_normed',
                              'resnet18', 'resnet20', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
-parser.add_argument('--checkpoint', default='./saved_models', type=str, help='Directory for saving models')
+parser.add_argument('--checkpoint', default='./saved_models/cifar10_vgg16_0.pth', type=str, help='path to the model checkpoint')
 
 parser.add_argument('--iter', default=200, type=int, help='Number of iterations for finding th values')
 parser.add_argument('--samples', default=10000, type=int, help='Number of iterations for finding th values')
 args = parser.parse_args()
-args.mid = f'{args.dataset}_{args.model}'
-savename = os.path.join(args.checkpoint, args.mid)+"_new"
+# extract directory from checkpoint
+save_dir = os.path.dirname(args.checkpoint)
+savename = os.path.basename(args.checkpoint).split('.')[0]
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 batch_size =128
@@ -94,15 +97,10 @@ def extract_features(L=2):
         thresholds_all[L-1,n_steps:] = np.array(thrs_in_list)
         
         
-        
-        
-        
-        
-        
 
 model = modelpool(args.model, args.dataset)
 criterion = nn.CrossEntropyLoss()
-model.load_state_dict(torch.load(savename + '.pth'))
+model.load_state_dict(torch.load(args.checkpoint))
 model.to(device)
 num_relu = str(model).count('ReLU')
 print(num_relu)
