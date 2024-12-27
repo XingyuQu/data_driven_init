@@ -31,10 +31,11 @@ parser.add_argument('--model', default='vgg16', type=str, help='Model name',
                     choices=['cifarnet','small','vgg16', 'resnet18', 'resnet20',
                              'vgg11', 'vgg13', 'vgg16', 'vgg19', 'vgg16_normed',
                              'resnet18', 'resnet20', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
-parser.add_argument('--checkpoint', default='./saved_models/cifar10_vgg16_0.pth', type=str, help='path to the model checkpoint')
+parser.add_argument('--checkpoint', default='saved_models/cifar10_vgg16_0.pth', type=str, help='path to the model checkpoint')
 
 parser.add_argument('--iter', default=200, type=int, help='Number of iterations for finding th values')
 parser.add_argument('--samples', default=10000, type=int, help='Number of iterations for finding th values')
+parser.add_argument('--t', default=1, type=int, help='T Latency length (Simulation time-steps)')
 args = parser.parse_args()
 # extract directory from checkpoint
 save_dir = os.path.dirname(args.checkpoint)
@@ -47,7 +48,7 @@ batch_size =128
 
 # to extract activation values
 sample = 0
-n_steps = 1
+n_steps = args.t
 thresholds_13= np.zeros(n_steps)
 def extract_features(L=2):
     train_loader, test_loader = datapool(args.dataset, batch_size,2)

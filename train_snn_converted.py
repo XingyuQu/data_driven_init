@@ -26,25 +26,28 @@ parser.add_argument('--model', default='vgg16', type=str, help='Model name',
                     choices=['vgg16_imagenet','cifarnet','small','vgg16', 'resnet18', 'resnet20','alexnet','vgg16_no_bn',
                              'vgg11', 'vgg13', 'vgg16', 'vgg19', 'vgg16_normed','resnet19',
                              'resnet18', 'resnet20', 'resnet34','resnet34_imagenet','resnet50', 'resnet101', 'resnet152'])
-parser.add_argument('--checkpoint', default='./saved_models', type=str, help='Directory for saving models')
+parser.add_argument('--checkpoint', default='saved_models/cifar10_vgg16_0.pth', type=str, help='path to the model checkpoint')
 
 parser.add_argument('--naive', default='', type=str)
 parser.add_argument('--batchsize', default=64, type=int)
 parser.add_argument('--lr', default=1e-3, type=float, help='Learning rate')
 parser.add_argument('--wd', default=5e-4, type=float, help='Weight decay')
 parser.add_argument('--epochs', default=50, type=int)
+parser.add_argument('--version', default='v1', type=str)
+parser.add_argument('--device', default='cuda:0', type=str)
 
 args = parser.parse_args()
-args.mid = f'{args.dataset}_{args.model}'
-savename = os.path.join(args.checkpoint, args.mid)+"_new"#+"_new"#+"no_bn"#+"no_bias"+"no_affine"#+"_no_affine"#+"_no_affine"+"_bn"
+# args.mid = f'{args.dataset}_{args.model}'
+if args.version != 'v1':
+    args.version = '_' + args.version
+savename = os.path.basename(args.checkpoint).split('.')[0]
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device(args.device)
 # Define Hyper-parameters 
 
 num_epochs = 300
 batch_size =args.batchsize
 learning_rate = 0.001
-
 
 
 # to extract activation values
@@ -58,7 +61,7 @@ criterion = nn.CrossEntropyLoss()
 train_loader, test_loader = datapool(args.dataset, batch_size,2,shuffle=True)
    
 
-model.load_state_dict(torch.load(savename + '.pth'))
+model.load_state_dict(torch.load(args.checkpoint))
 
 model.to(device)
 num_relu = str(model).count('ReLU')
@@ -136,12 +139,12 @@ def test_snn(model):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             
-            print('Accuracy of the snn network on the %d test images: %f, %d are correct'%(total,100 * correct / total,correct))
+            # print('Accuracy of the snn network on the %d test images: %f, %d are correct'%(total,100 * correct / total,correct))
         test_loss.append(loss/total)
         test_acc.append(100 * correct / total)
     return 100 * correct / total
 def train_snn(train_dataloader, test_dataloader, model, epochs, device, loss_fn, lr=0.1, wd=5e-4, save=None, parallel=False, rank=0):
-    model.cuda(device)
+    model.to(device)
     
     optimizer = torch.optim.SGD(model.parameters(), lr=lr,momentum=0.9,weight_decay=wd) 
     #optimizer = torch.optim.RMSprop(model.parameters(), lr=lr,momentum=0.9,weight_decay=wd) 
@@ -172,9 +175,9 @@ def train_snn(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
         
         for img, label in train_dataloader:
             img = add_dimension(img,n_steps)
-            img = img.cuda(device)
+            img = img.to(device)
             
-            labels = label.cuda(device)
+            labels = label.to(device)
             outputs = model(img,thresholds,L=0,t=n_steps) 
             if args.TET==0:
                 
@@ -216,8 +219,8 @@ def train_snn(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
             #print(predicted)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            if total%(256*8) == 0:
-                print('Epoch:%d, Accuracy of the snn network on the %d train images: %f, loss:%f'%(epoch,total,100 * correct / total,epoch_loss/total))
+            # if total%(256*8) == 0:
+            #     print('Epoch:%d, Accuracy of the snn network on the %d train images: %f, loss:%f'%(epoch,total,100 * correct / total,epoch_loss/total))
                 #exit()
         print('Epoch:%d, Accuracy of the snn network on the %d train images: %f, loss:%f'%(epoch,total,100 * correct / total,epoch_loss/total))
         scheduler.step()
@@ -226,16 +229,19 @@ def train_snn(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
         if (epoch+1)%1==0:
             test_acc = test_snn(model)
         if best_acc<=test_acc:
-            torch.save(model.state_dict(),  savename + '%s_updated_snn1_%d.pth'%(naive,n_steps))
+            if args.version == 'v1':
+                torch.save(model.state_dict(),  savename + '%s_updated_snn1_%d.pth'%(naive,n_steps))
+            else:
+                torch.save(model.state_dict(),  savename + '%s_updated_snn1_%d%s.pth'%(naive, n_steps, args.version))
             best_acc = test_acc
             best_epoch = epoch
         print('Best acc: %f, found at the epoch: %d, with loss: %f'%(best_acc,best_epoch,best_loss))
         
-        
-        np.save(savename+'_updated_snn1_train_loss_%d.npy'%(n_steps),train_loss)
-        np.save(savename+'_updated_snn1_test_loss_%d.npy'%(n_steps),test_loss)
-        np.save(savename+'_updated_snn1_train_acc_%d.npy'%(n_steps),train_acc)
-        np.save(savename+'_updated_snn1_test_acc_%d.npy'%(n_steps),test_acc)
+        suffix = '' if args.version == 'v1' else args.version
+        np.save('logs/'+savename+'_updated_snn1_train_loss_%d%s.npy'%(n_steps, suffix), train_loss)
+        np.save('logs/'+savename+'_updated_snn1_test_loss_%d%s.npy'%(n_steps, suffix), test_loss)
+        np.save('logs/'+savename+'_updated_snn1_train_acc_%d%s.npy'%(n_steps, suffix), train_acc)
+        np.save('logs/'+savename+'_updated_snn1_test_acc_%d%s.npy'%(n_steps, suffix), test_acc)
         print("saved as: ",savename+'_updated_snn1_test_acc_%d.npy'%(n_steps))
     return model
 print("Initial SNN accuracy, before training.....")
@@ -244,6 +250,6 @@ print("Initial SNN accuracy, before training.....")
 test_snn(model)
 
 
-model = train_snn(train_loader, test_loader, model, args.epochs, device, criterion,args.lr, args.wd, savename)
+model = train_snn(train_loader, test_loader, model, args.epochs, device, criterion, args.lr, args.wd, savename)
 print("Final SNN accuracy, after training.......")
 test_snn(model)

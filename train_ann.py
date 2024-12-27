@@ -34,6 +34,7 @@ parser.add_argument('--checkpoint', default='./saved_models', type=str, help='Di
 parser.add_argument('--lr', default=0.1, type=float, help='Learning rate')
 parser.add_argument('--wd', default=5e-4, type=float, help='Weight decay')
 parser.add_argument('--model_name', default='model_0', type=str)
+parser.add_argument('--device', default='cuda:1', type=str)
 
 args = parser.parse_args()
 if os.path.exists(args.checkpoint) is False:
@@ -43,7 +44,7 @@ args.mid = f'{args.dataset}_{args.model}'
 savename = os.path.join(args.checkpoint, args.mid)+args.model_name#+"no_bn"#+"no_bias"+"no_affine"#+"_no_affine"#+"_no_affine"+"_bn"
 #print('%s_threshold_removed%d.npy'%(savename,2))
 # Check Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device(args.device)
 # Define Hyper-parameters 
 input_size = 784
 hidden_size = 500
