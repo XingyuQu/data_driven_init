@@ -1,3 +1,5 @@
+# Adapted from Mergekit: https://github.com/arcee-ai/mergekit/blob/main/mergekit/merge_methods/slerp.py
+
 # Copyright (C) 2024 Charles O. Goddard
 #
 # This software is free software: you can redistribute it and/or
@@ -12,29 +14,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
-
-from typing import Any, Dict, List, Optional, Union
-
+from typing import Union
 import numpy as np
 import torch
-
-from mergekit.architecture import WeightInfo
-from mergekit.common import ImmutableMap, ModelReference
-from mergekit.graph import Task
-from mergekit.merge_methods.base import (
-    ConfigParameterDef,
-    MergeMethod,
-    MergeTensorInput,
-)
-from mergekit.merge_methods.rectify_embed import rectify_embed_sizes
-
-
-class SlerpTask(Task[torch.Tensor]):
-        return self.gather_tensors.group_label()
-
-
-class SlerpMerge(MergeMethod):
-        )
 
 
 def lerp(

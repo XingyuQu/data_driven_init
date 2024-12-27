@@ -35,6 +35,8 @@ parser.add_argument('--wd', default=5e-4, type=float, help='Weight decay')
 parser.add_argument('--epochs', default=50, type=int)
 parser.add_argument('--version', default='v1', type=str)
 parser.add_argument('--device', default='cuda:0', type=str)
+parser.add_argument('--pretrained_init', default='', type=str)
+parser.add_argument('--constant_lr', action='store_true')
 
 args = parser.parse_args()
 # args.mid = f'{args.dataset}_{args.model}'
@@ -103,6 +105,9 @@ model.to(device)
 if n_steps>1:
     model.load_state_dict(torch.load(savename + '%s_updated_snn1_%d.pth'%(naive,n_steps-1)))
     #model = replace_activation_by_spike(model)
+if args.pretrained_init:
+    model.load_state_dict(torch.load(args.pretrained_init))
+    print(f"model loaded from {args.pretrained_init}")
 
 print("model loaded...")
 
@@ -158,7 +163,10 @@ def train_snn(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
                                 ],
                                 lr=lr, 
                                  momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs,verbose=True)
+    if args.constant_lr:
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=1)
+    else:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs,verbose=True)
     # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, 
     #                     milestones=[100], # List of epoch indices
     #                     gamma =0.5,verbose=True)
@@ -246,8 +254,8 @@ def train_snn(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
     return model
 print("Initial SNN accuracy, before training.....")
 
-
-test_snn(model)
+init_acc = test_snn(model)
+print("Initial accuracy: ",init_acc)
 
 
 model = train_snn(train_loader, test_loader, model, args.epochs, device, criterion, args.lr, args.wd, savename)
