@@ -169,7 +169,7 @@ class VGG(nn.Module):
         return nn.Sequential(*layers)
     
 
-    def forward(self, x,thresholds=0,L=0,t=0):
+    def forward(self, x, thresholds=0, L=0, t=0, prev_L=0):
         out = x
         #print(out[0,0])
         counter = 0
@@ -178,13 +178,15 @@ class VGG(nn.Module):
         #print(L)
         for i in range(len(self.layer1)):
             if 'SPIKE_layer' in str(self.layer1[i]):
-                out = self.layer1[i](out,t)
+                if prev_L <= counter:
+                    out = self.layer1[i](out, t)
                 #print("spike",counter+1,out.sum())
                 counter += 1
                 if counter == L:
                     return out
             else:
-                out = self.layer1[i](out)
+                if prev_L <= counter:
+                    out = self.layer1[i](out)
             #out.sum(-1).detach().cpu()
             layer_count += 1
             #print(i,out.sum())
@@ -206,13 +208,15 @@ class VGG(nn.Module):
 
         for i in range(len(self.layer2)):
             if 'SPIKE_layer' in str(self.layer2[i]):
-                out = self.layer2[i](out,t)
+                if prev_L <= counter:
+                    out = self.layer2[i](out, t)
                 #print("spike",counter+1,out.sum())
                 counter += 1
                 if counter == L:
                     return out
             else:
-                out = self.layer2[i](out)
+                if prev_L <= counter:
+                    out = self.layer2[i](out)
             
             #out.sum(-1).detach().cpu()
             layer_count += 1
@@ -231,13 +235,15 @@ class VGG(nn.Module):
         
         for i in range(len(self.layer3)):
             if 'SPIKE_layer' in str(self.layer3[i]):
-                out = self.layer3[i](out,t)
+                if prev_L <= counter:
+                    out = self.layer3[i](out, t)
                 #print("spike",counter+1,out.sum())
                 counter += 1
                 if counter == L:
                     return out
             else:
-                out = self.layer3[i](out)
+                if prev_L <= counter:
+                    out = self.layer3[i](out)
             #out.sum(-1).detach().cpu()
             layer_count += 1
             
@@ -256,13 +262,15 @@ class VGG(nn.Module):
         for i in range(len(self.layer4)):
             if 'SPIKE_layer' in str(self.layer4[i]):
                 
-                out = self.layer4[i](out,t)
+                if prev_L <= counter:
+                    out = self.layer4[i](out, t)
                 #print("spike",counter+1,out.sum())
                 counter += 1
                 if counter == L:
                     return out
             else:
-                out = self.layer4[i](out)
+                if prev_L <= counter:
+                    out = self.layer4[i](out)
             #out.sum(-1).detach().cpu()
             layer_count += 1
             
@@ -284,13 +292,15 @@ class VGG(nn.Module):
                 # if counter +1 ==13:
                 #     print("bias",self.layer5[i-1].bias[0:2])
                 #     return out
-                out = self.layer5[i](out,t)
+                if prev_L <= counter:
+                    out = self.layer5[i](out, t)
                 #print("spike",counter+1,out.sum())
                 counter += 1
                 if counter == L:
                     return out
             else:
-                out = self.layer5[i](out)
+                if prev_L <= counter:
+                    out = self.layer5[i](out)
                 # if counter +1 ==13 and  'Conv2d' in str(self.layer5[i]):
                 #     #np.save('./features/weights.npy',self.layer5[i].weight.detach().cpu().numpy())
                 #     #np.save('./features/bias.npy',self.layer5[i].bias.detach().cpu().numpy())
@@ -319,13 +329,15 @@ class VGG(nn.Module):
             layer_count += 1
             
             if 'SPIKE_layer' in str(self.classifier[i]):
-                out = self.classifier[i](out,t)
+                if prev_L <= counter:
+                    out = self.classifier[i](out, t)
                 #print("spike",counter+1,out.sum())
                 counter += 1
                 if counter == L:
                     return out
             else:
-                out = self.classifier[i](out)
+                if prev_L <= counter:
+                    out = self.classifier[i](out)
             if 'LIFSpike' in str(self.classifier[i]):
                 #print("spike",counter,out.sum())
                 counter += 1 
