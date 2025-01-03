@@ -187,10 +187,12 @@ class ResNet(nn.Module):
                 return out
         out = self.avg_pool(out)
         
-        if out.shape[-1]==1:
+        if len(out.shape) == 4:
             out = out.view(out.size(0), -1)
+        elif len(out.shape) == 5:
+            out = out.view(out.size(0), out.size(1), out.size(2))
         else:
-            out = out.view(out.size(0), out.size(1),out.size(-1))
+            raise NotImplementedError
         
         out = self.fc(out)
         return out

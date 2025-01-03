@@ -1,1 +1,3 @@
-python3 feature_extraction.py --iter 10 --samples 3000 --model vgg16 --dataset  cifar10  --checkpoint saved_models/cifar10_vgg16_3.pth --t 1
+# python3 feature_extraction.py --iter 100 --samples 8000 --model vgg16 --dataset  cifar10  --checkpoint saved_models/cifar10_vgg16_1.pth --t 1
+# python3 feature_extraction.py --iter 10 --samples 5000 --model resnet18 --dataset  cifar10  --checkpoint saved_models/cifar10_resnet18_1.pth --t 1
+python3 feature_extraction.py --iter 10 --samples 5000 --model resnet20 --dataset  cifar10  --checkpoint saved_models/cifar10_resnet20_1.pth --t 1
